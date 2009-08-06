@@ -1,0 +1,74 @@
+body,html{
+	height:100%;
+	font-family:Helvetica,Arial,sans-serif;
+	font-size:13px;
+	line-height:20px;
+	letter-spacing:.1px;
+	font-weight:normal;
+}
+body { 
+	background-color: #826E4B; 
+	margin:0; 
+} 
+
+
+#container{
+	margin:50px auto;
+	display:table; /* this is what makes it stretch to fit content even though it is not centered. */
+}
+
+#container{
+	width:810px;
+	padding:20px;
+	background-color: #624E2B; 
+}
+
+body,p,td { 
+	color: #FFFAAD; 
+} 
+h1 a{
+	text-decoration: none;
+}
+a { 
+	color: #FFF; 
+} 
+h1,h2,h3,h4,h5,h6{
+	padding: 0;
+	margin: 0;
+	color: #FFFAAD; 
+}
+h1 { 
+	color: white;
+	font-size:40px;
+	margin:0; 
+} 
+h3 { 
+	color: #F7ED80;
+} 
+
+ul{
+	margin: 0;
+	padding-left: 10px;
+}
+
+.box{
+	padding:20px;
+	background-color: #523E1B; 
+	border:2px solid #888445;
+	margin-bottom: 20px;
+}
+
+#form{
+	float: left;
+	width: 350px;
+	height: 200px;
+}
+#rules{
+	float: left;
+	width: 350px;
+	margin-left: 20px;
+	height: 200px;
+}
+.clear{
+	clear: left;
+}
