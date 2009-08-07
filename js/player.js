@@ -1,6 +1,6 @@
 Object.prototype.each = function(lambda){
 	for(var i = 0;i < this.length;i++){
-		lambda.call(this[i])
+		lambda.call(this[i],i)
 	}
 	return this
 }
@@ -36,7 +36,8 @@ var frames;
 var stepper, playing;
 var tick_border = 0;
 var timeline_width = 300;
-
+var start_frame = 0;
+var end_frame = 0;
 
 function getImages(){
 	return document.images.grep(function(){return this.has_property("src",frame_regex)}).collect(function(){return this.src})
@@ -75,10 +76,10 @@ function markerWidth(frame){
 
 function replaceImage(pause){
 	pause = pause || false
-	if(current_frame >= frames.length)
-	  current_frame = 0
-	if(current_frame < 0)
-	  current_frame = frames.length - 1
+	if(current_frame >= end_frame)
+	  current_frame = start_frame
+	if(current_frame < start_frame)
+	  current_frame = end_frame - 1
 	document.getElementById("frame_permalink").value = document.getElementById("viewer").getElementsByTagName("img")[0].src = frames[current_frame]
 	document.getElementById("current_frame").value = current_frame + 1
 	//document.getElementById("time_line").getElementsByTagName("div").each(function(){this.style.background = "#fff"})
@@ -115,17 +116,34 @@ function toggle_play(){
 	!playing ? play() : pause()
 }
 
+function disable_ticks(start,end){
+	document.getElementById("time_line").getElementsByTagName("div").each(function(i){
+		if(i > frameToTick(start_frame) && i < frameToTick(end_frame) && this.id != "marker")
+			this.style.background = "#fff"
+		else if(this.id != "marker")
+			this.style.background = "#eee"
+		else
+			return false
+	})
+}
+
 function createViewer(frames, element){
-	var viewer, stop, start, next, prev, speed, current, permalink, speed_label, current_label, time_line
+	var viewer, stop, start, next, prev, speed, current, permalink, speed_label, current_label, time_line, start_frame_field, end_frame_field
+	end_frame = frames.length;
 	viewer          = document.createElement("div")
 	nextFrame       = document.createElement('img')
 	controls        = document.createElement("div")
+	start_and_stop  = document.createElement("div")
 	start           = document.createElement("input")
 	stop            = document.createElement("input")
 	next            = document.createElement("input")
 	prev            = document.createElement("input")
 	speed           = document.createElement("input")
 	current         = document.createElement("input")
+	start_frame_field = document.createElement("input")
+	start_label     = document.createElement("label")
+	end_label       = document.createElement("label")
+	end_frame_field = document.createElement("input")
 	permalink_form  = document.createElement("div")
 	permalink_label = document.createElement("label")
 	permalink       = document.createElement("input")
@@ -144,13 +162,17 @@ function createViewer(frames, element){
 	
 	controls.id = "controls"
 	prev.type = start.type = next.type = "button"
-	speed.type = current.type = permalink.type ="text"
+	start_frame_field.type = end_frame_field.type = speed.type = current.type = permalink.type ="text"
 	start.id = "start_button"
 	next.value  = ">"
 	prev.value  = "<"
 	permalink.id = "frame_permalink"
 	permalink_form.style.display = "block"
 	permalink_label.innerHTML = "current frame"
+	start_label.innerHTML = "Start at"
+	end_label.innerHTML = "End at"
+	start_frame_field.value = start_frame + 1
+	end_frame_field.value = end_frame
 	speed.name = speed.id  = "speed"
 	speed.value = default_speed;
 	speed.size = current.size = 3
@@ -173,7 +195,6 @@ function createViewer(frames, element){
 	viewer.className+=viewer.className?' box':'box';
 	
 	controls.style.clear = "both"
-	controls.style.cssFloat = "left"
 	
 	permalink.onclick = function(){ this.select() }
 	start.onclick     = function(){ toggle_play() }
@@ -185,9 +206,19 @@ function createViewer(frames, element){
 		  replaceImage()
 		}
 	}
+	start_frame_field.onkeyup     = function(){
+		start_frame = this.value - 1
+		disable_ticks(start_frame,end_frame)
+	}
+	
+	end_frame_field.onkeyup     = function(){
+		end_frame = this.value
+		disable_ticks(start_frame,end_frame)
+	}
 	
 	permalink_form.appendChild(permalink_label)
 	permalink_form.appendChild(permalink)
+	
 	controls.appendChild(start)
 	controls.appendChild(prev)
 	controls.appendChild(next)
@@ -196,9 +227,17 @@ function createViewer(frames, element){
 	controls.appendChild(current)
 	controls.appendChild(current_label)
 	controls.appendChild(permalink_form)
+	
+	start_and_stop.appendChild(start_label)
+	start_and_stop.appendChild(start_frame_field)
+	start_and_stop.appendChild(end_label)
+	start_and_stop.appendChild(end_frame_field)
+	
 	viewer.appendChild(nextFrame)
 	viewer.appendChild(time_line)
+	viewer.appendChild(document.createElement("br"))
 	viewer.appendChild(controls)
+	viewer.appendChild(start_and_stop)
 	viewer.id = "viewer"
 	element = element || document.body
 	element.insertBefore(viewer,element.firstChild);
@@ -206,6 +245,7 @@ function createViewer(frames, element){
 	viewer.getElementsByTagName("label").each(function(){ this.style.padding = "3px" })
 	viewer.getElementsByTagName("input").grep(function(){return this.has_property("type",/text/)}).each(function(){ this.style.textAlign = "center";this.style.margin = "0 0 0 5px" })
 	viewer.getElementsByTagName("div").each(function()  { this.style.margin = "10px 0 0 0";this.style.textAlign="center" })
+	start_and_stop.getElementsByTagName("input").grep(function(){return this.has_property("type",/text/)}).each(function(){ this.size = "4"})
 	
 	//frames.each(function(){
 	var ticks = parseInt(time_line.style.width.replace(/[^\d]+/,''))
